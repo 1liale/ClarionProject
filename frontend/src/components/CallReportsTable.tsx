@@ -65,8 +65,8 @@ const CallReportsTable = ({ reports, loading }: CallReportsTableProps) => {
       <div className="w-full">
         <textarea
           readOnly
-          rows={open ? Math.min(8, text.split('\n').length + 1) : 1}
-          className="w-full resize-none bg-transparent border border-slate-200 rounded-md px-2 py-1 text-sm leading-snug focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 overflow-hidden"
+          rows={open ? Math.min(30, text.split('\n').length + 1) : 1}
+          className="w-full resize-none bg-transparent border border-slate-200 rounded-md px-2 py-1 text-sm leading-snug focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 overflow-y-auto"
           style={{ cursor: 'pointer' }}
           value={text}
           onClick={() => setOpen((o) => !o)}

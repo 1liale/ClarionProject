@@ -68,18 +68,38 @@ export class CallReportsController {
         return 0;
       })();
 
-      // Extract the first user question & assistant response for quick view.
-      type SimpleMsg = { role?: string; message?: string };
-      const msgsSource = (payload as unknown as { messages?: SimpleMsg[] }).messages ?? (payload.call?.messages as unknown as SimpleMsg[]) ?? [];
-      const firstUser = msgsSource.find((m) => m.role === 'user')?.message ?? 'N/A';
-      const firstAssistant = msgsSource.find((m) => m.role === 'assistant')?.message ?? 'N/A';
+      // Extract conversation directly from the transcript (more reliable).
+      const transcript: string | undefined = (payload as any).transcript ?? (payload.call as any)?.transcript;
+
+      const userLines: string[] = [];
+      const assistantLines: string[] = [];
+
+      if (typeof transcript === 'string' && transcript.trim().length > 0) {
+        transcript.split(/\r?\n/).forEach((line) => {
+          const trimmed = line.trim();
+          if (/^user:/i.test(trimmed)) {
+            userLines.push(trimmed.replace(/^user:\s*/i, ''));
+          } else if (/^(ai|assistant|bot):/i.test(trimmed)) {
+            assistantLines.push(trimmed.replace(/^(ai|assistant|bot):\s*/i, ''));
+          }
+        });
+      }
+
+      const firstUser = userLines[0] ?? 'N/A';
+      const lastAssistant = assistantLines.at(-1) ?? 'N/A';
+
+      const conversationGrouped = {
+        user: userLines,
+        assistant: assistantLines,
+      };
 
       const enrichedPayload: EndOfCallReport = {
         ...payload,
         duration: durationSeconds,
         userQuestion: firstUser,
-        assistantResponse: firstAssistant,
-      } as EndOfCallReport;
+        assistantResponse: lastAssistant,
+        conversation: conversationGrouped,
+      };
 
       if (
         (typeof rawCallId !== 'string' && typeof rawCallId !== 'number') ||

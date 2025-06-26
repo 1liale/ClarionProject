@@ -13,7 +13,27 @@ import {
   startOfDay,
 } from 'date-fns';
 
-interface CallReport {
+// -----------------------
+// Shared / minimal types
+// -----------------------
+
+type Conversation = {
+  user?: string[];
+  assistant?: string[];
+};
+
+interface BackendCallReport {
+  callId: string;
+  receivedAt: string;
+  payload: {
+    duration: number;
+    userQuestion: string;
+    assistantResponse: string;
+    conversation?: Conversation;
+  };
+}
+
+interface CallReportUI {
   id: string;
   timestamp: string;
   duration: number;
@@ -34,31 +54,24 @@ const Index = () => {
       if (!res.ok) {
         throw new Error('Failed to fetch call reports');
       }
-      return (await res.json()) as {
-        callId: string;
-        receivedAt: string;
-        payload: Record<string, unknown>;
-      }[];
+      return (await res.json()) as BackendCallReport[];
     },
     staleTime: 1000 * 60, // 1 min cache
   });
 
   // Map data to UI shape
-  const callReports: CallReport[] = useMemo(
+  const callReports: CallReportUI[] = useMemo(
     () =>
-      callReportsRaw.map((item) => ({
-        id: item.callId,
-        timestamp: item.receivedAt,
-        duration:
-          typeof item.payload?.duration === 'number' ? item.payload.duration : 0,
-        userQuestion:
-          typeof item.payload?.userQuestion === 'string'
-            ? (item.payload.userQuestion as string)
-            : 'N/A',
-        assistantResponse:
-          typeof item.payload?.assistantResponse === 'string'
-            ? (item.payload.assistantResponse as string)
-            : 'N/A',
+      callReportsRaw.map(({ callId, receivedAt, payload }): CallReportUI => ({
+        id: callId,
+        timestamp: receivedAt,
+        duration: payload.duration ?? 0,
+        userQuestion: Array.isArray(payload.conversation?.user)
+          ? JSON.stringify(payload.conversation.user, null, 2)
+          : JSON.stringify([payload.userQuestion ?? 'N/A']),
+        assistantResponse: Array.isArray(payload.conversation?.assistant)
+          ? JSON.stringify(payload.conversation.assistant, null, 2)
+          : JSON.stringify([payload.assistantResponse ?? 'N/A']),
         status: 'completed',
       })),
     [callReportsRaw],

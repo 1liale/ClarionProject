@@ -9,6 +9,11 @@ export interface EndOfCallReport
   userQuestion: string;
   /** Last assistant response in the call */
   assistantResponse: string;
+  /** Full conversation grouped by role for easy display */
+  conversation: {
+    user: string[];
+    assistant: string[];
+  };
 }
 
 export interface CallReport {
