@@ -1,17 +1,28 @@
 import { Injectable } from '@nestjs/common';
+import { Vapi } from '@vapi-ai/server-sdk';
+
+export interface EndOfCallReport
+  extends Vapi.ServerMessageEndOfCallReport {
+  /** Computed duration in seconds */
+  duration: number;
+  /** Last user utterance in the call */
+  userQuestion: string;
+  /** Last assistant response in the call */
+  assistantResponse: string;
+}
 
 export interface CallReport {
-  /** Unique identifier for the call (coming from Vapi). */
+  /** Unique identifier for the call (taken from `call.id`). */
   callId: string;
-  /** Raw payload / metadata coming from Vapi. */
-  payload: Record<string, unknown>;
-  /** Timestamp when the report was received by the backend. */
+  /** The full end-of-call report coming from Vapi. */
+  payload: EndOfCallReport;
+  /** Timestamp when the report was received by this backend. */
   receivedAt: Date;
 }
 
 @Injectable()
 export class CallReportsService {
-  /** In-memory storage for all call reports. */
+  /** In-memory store for demo purposes. Replace with DB in production. */
   private readonly reports: CallReport[] = [];
 
   /**

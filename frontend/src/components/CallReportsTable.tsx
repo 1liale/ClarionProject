@@ -1,5 +1,5 @@
-
 import { Clock, MessageCircle, CheckCircle, AlertCircle } from 'lucide-react';
+import { useState } from 'react';
 
 interface CallReport {
   id: string;
@@ -56,6 +56,32 @@ const CallReportsTable = ({ reports, loading }: CallReportsTableProps) => {
       default:
         return `${baseClasses} bg-gray-100 text-gray-800`;
     }
+  };
+
+  const ExpandableCell = ({ text }: { text: string }) => {
+    const [open, setOpen] = useState(false);
+    if (!text || text === 'N/A') return <span className="text-slate-500">N/A</span>;
+    return (
+      <div className="w-full">
+        <textarea
+          readOnly
+          rows={open ? Math.min(8, text.split('\n').length + 1) : 1}
+          className="w-full resize-none bg-transparent border border-slate-200 rounded-md px-2 py-1 text-sm leading-snug focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 overflow-hidden"
+          style={{ cursor: 'pointer' }}
+          value={text}
+          onClick={() => setOpen((o) => !o)}
+        />
+        <div className="text-right mt-1">
+          <button
+            type="button"
+            className="text-xs text-blue-600 hover:underline"
+            onClick={() => setOpen((o) => !o)}
+          >
+            {open ? 'Collapse' : 'Expand'}
+          </button>
+        </div>
+      </div>
+    );
   };
 
   if (loading) {
@@ -149,15 +175,11 @@ const CallReportsTable = ({ reports, loading }: CallReportsTableProps) => {
                     </span>
                   </div>
                 </td>
-                <td className="px-6 py-4">
-                  <div className="text-sm text-slate-900 max-w-xs truncate" title={report.userQuestion}>
-                    {report.userQuestion}
-                  </div>
+                <td className="px-6 py-4 max-w-xs">
+                  <ExpandableCell text={report.userQuestion} />
                 </td>
-                <td className="px-6 py-4">
-                  <div className="text-sm text-slate-900 max-w-md truncate" title={report.assistantResponse}>
-                    {report.assistantResponse}
-                  </div>
+                <td className="px-6 py-4 max-w-md">
+                  <ExpandableCell text={report.assistantResponse} />
                 </td>
               </tr>
             ))}
