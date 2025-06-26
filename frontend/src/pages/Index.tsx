@@ -12,6 +12,7 @@ import {
   isBefore,
   startOfDay,
 } from 'date-fns';
+import AppointmentsTable, { Appointment } from '../components/AppointmentsTable';
 
 // -----------------------
 // Shared / minimal types
@@ -57,6 +58,20 @@ const Index = () => {
       return (await res.json()) as BackendCallReport[];
     },
     staleTime: 1000 * 60, // 1 min cache
+  });
+
+  // Fetch appointments
+  const {
+    data: appointmentsRaw = [],
+    isLoading: apptLoading,
+  } = useQuery({
+    queryKey: ['appointments'],
+    queryFn: async () => {
+      const res = await fetch('http://localhost:3000/appointments');
+      if (!res.ok) throw new Error('Failed to fetch appointments');
+      return (await res.json()) as Appointment[];
+    },
+    staleTime: 1000 * 30,
   });
 
   // Map data to UI shape
@@ -204,6 +219,15 @@ const Index = () => {
             <p className="text-slate-600 mt-1">View detailed information about voice assistant interactions</p>
           </div>
           <CallReportsTable reports={callReports} loading={loading} />
+        </div>
+
+        {/* Appointments Table */}
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mt-10">
+          <div className="px-6 py-4 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
+            <h2 className="text-xl font-semibold text-slate-900">Scheduled Appointments</h2>
+            <p className="text-slate-600 mt-1">Live bookings made via the voice assistant</p>
+          </div>
+          <AppointmentsTable appointments={appointmentsRaw} loading={apptLoading} />
         </div>
       </div>
     </div>
